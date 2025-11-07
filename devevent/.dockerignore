@@ -1,0 +1,11 @@
+# Ignore files/folders not needed in the Docker build context
+node_modules
+.next
+.git
+.gitignore
+.cache
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+.DS_Store
+**/*.log

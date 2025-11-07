@@ -181,27 +181,34 @@ float noise(vec2 st) {
   return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
-float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord,
-                  float seedA, float seedB, float speed) {
+float rayStrength(
+  vec2 raySource,
+  vec2 rayRefDirection,
+  vec2 coord,
+  float seedA,
+  float seedB,
+  float speed
+) {
   vec2 sourceToCoord = coord - raySource;
   vec2 dirNorm = normalize(sourceToCoord);
   float cosAngle = dot(dirNorm, rayRefDirection);
 
   float distortedAngle = cosAngle + distortion * sin(iTime * 2.0 + length(sourceToCoord) * 0.01) * 0.2;
-  
+
   float spreadFactor = pow(max(distortedAngle, 0.0), 1.0 / max(lightSpread, 0.001));
 
   float distance = length(sourceToCoord);
   float maxDistance = iResolution.x * rayLength;
   float lengthFalloff = clamp((maxDistance - distance) / maxDistance, 0.0, 1.0);
-  
+
   float fadeFalloff = clamp((iResolution.x * fadeDistance - distance) / (iResolution.x * fadeDistance), 0.5, 1.0);
   float pulse = pulsating > 0.5 ? (0.8 + 0.2 * sin(iTime * speed * 3.0)) : 1.0;
 
   float baseStrength = clamp(
     (0.45 + 0.15 * sin(distortedAngle * seedA + iTime * speed)) +
     (0.3 + 0.2 * cos(-distortedAngle * seedB + iTime * speed)),
-    0.0, 1.0
+    0.0,
+    1.0
   );
 
   return baseStrength * lengthFalloff * fadeFalloff * spreadFactor * pulse;
@@ -209,7 +216,7 @@ float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord,
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec2 coord = vec2(fragCoord.x, iResolution.y - fragCoord.y);
-  
+
   vec2 finalRayDir = rayDir;
   if (mouseInfluence > 0.0) {
     vec2 mouseScreenPos = mousePos * iResolution.xy;
@@ -218,11 +225,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   }
 
   vec4 rays1 = vec4(1.0) *
-               rayStrength(rayPos, finalRayDir, coord, 36.2214, 21.11349,
-                           1.5 * raysSpeed);
+               rayStrength(rayPos, finalRayDir, coord, 36.2214, 21.11349, 1.5 * raysSpeed);
   vec4 rays2 = vec4(1.0) *
-               rayStrength(rayPos, finalRayDir, coord, 22.3991, 18.0234,
-                           1.1 * raysSpeed);
+               rayStrength(rayPos, finalRayDir, coord, 22.3991, 18.0234, 1.1 * raysSpeed);
 
   fragColor = rays1 * 0.5 + rays2 * 0.4;
 
@@ -247,16 +252,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 void main() {
   vec4 color;
   mainImage(color, gl_FragCoord.xy);
-  gl_FragColor  = color;
+  gl_FragColor = color;
 }`;
 
-      const uniforms = {
+      const uniforms: any = {
         iTime: { value: 0 },
         iResolution: { value: [1, 1] },
-
         rayPos: { value: [0, 0] },
         rayDir: { value: [0, 1] },
-
         raysColor: { value: hexToRgb(raysColor) },
         raysSpeed: { value: raysSpeed },
         lightSpread: { value: lightSpread },
@@ -345,11 +348,10 @@ void main() {
 
         if (renderer) {
           try {
-            const canvas = renderer.gl.canvas;
-            const loseContextExt =
-              renderer.gl.getExtension("WEBGL_lose_context");
-            if (loseContextExt) {
-              loseContextExt.loseContext();
+            const canvas = renderer.gl.canvas as HTMLCanvasElement;
+            const loseContextExt = renderer.gl.getExtension("WEBGL_lose_context");
+            if (loseContextExt && (loseContextExt as any).loseContext) {
+              (loseContextExt as any).loseContext();
             }
 
             if (canvas && canvas.parentNode) {
@@ -391,8 +393,7 @@ void main() {
   ]);
 
   useEffect(() => {
-    if (!uniformsRef.current || !containerRef.current || !rendererRef.current)
-      return;
+    if (!uniformsRef.current || !containerRef.current || !rendererRef.current) return;
 
     const u = uniformsRef.current;
     const renderer = rendererRef.current;
